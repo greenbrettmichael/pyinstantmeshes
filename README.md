@@ -28,7 +28,7 @@ Pre-built binary wheels are available for:
 - **Linux** (manylinux)
 - **macOS**
 - **Windows**
-- **Python versions**: 3.8, 3.9, 3.10, 3.11, 3.12
+- **Python versions**: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14
 
 ### From source
 
