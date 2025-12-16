@@ -17,7 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        include:
+          # Python 3.7 only available on Ubuntu 22.04
+          - os: ubuntu-20.04
+            python-version: '3.7'
     
     steps:
     - uses: actions/checkout@v4
@@ -28,6 +32,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Set up MSVC (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
     
     - name: Install system dependencies (Linux)
       if: runner.os == 'Linux'
@@ -43,7 +51,9 @@ jobs:
     - name: Install system dependencies (Windows)
       if: runner.os == 'Windows'
       run: |
-        choco install cmake ninja
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+        choco install ninja
+      shell: powershell
     
     - name: Upgrade pip and install build dependencies
       run: |
@@ -51,6 +61,7 @@ jobs:
         pip install build setuptools wheel
     
     - name: Build and install package
+      timeout-minutes: 30
       run: |
         pip install -v .[test]
     
