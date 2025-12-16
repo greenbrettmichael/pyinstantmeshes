@@ -1,0 +1,75 @@
+name: Publish to PyPI
+
+on:
+  # Tag push for PyPI
+  push:
+    tags:
+      - "v*"
+    # Development branch for TestPyPI
+    branches:
+      - development
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.0
+        env:
+          CIBW_SKIP: "cp36-* pp*"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  make_sdist:
+    name: Make SDist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build SDist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-dist
+          path: dist/*.tar.gz
+
+  publish:
+    name: Publish
+    needs: [build_wheels, make_sdist]
+    runs-on: ubuntu-latest
+    # PyPI on tag; TestPyPI on development branch
+    if: |
+      startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/development'
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/v') && 'pypi' || 'testpypi' }}
+      url: ${{ startsWith(github.ref, 'refs/tags/v') && 'https://pypi.org/p/pyinstantmeshes' || 'https://test.pypi.org/p/pyinstantmeshes' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          # Downloads artifacts from build_wheels & make_sdist
+          pattern: '*'
+          path: dist
+          merge-multiple: true
+
+      - name: Publish distribution to PyPI/TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ startsWith(github.ref, 'refs/tags/v') && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
