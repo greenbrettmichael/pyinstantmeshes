@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
   make_sdist:
@@ -69,9 +69,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           # Downloads artifacts from build_wheels & make_sdist
-          pattern: '*'
+          pattern: 'cibw-wheels-*'
           path: dist
           merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-dist
+          path: dist
 
       - name: Publish distribution to PyPI/TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
