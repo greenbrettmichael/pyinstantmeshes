@@ -23,6 +23,22 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Patch TBB for GCC 10
+        shell: bash
+        run: |
+          # Recursively find files containing the problematic flag and remove it
+          # Use grep with || true to avoid failure if pattern not found
+          if grep -rl "Wno-error=changes-meaning" external 2>/dev/null; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              # macOS sed requires empty string after -i
+              grep -rl "Wno-error=changes-meaning" external | xargs sed -i '' 's/-Wno-error=changes-meaning//g'
+            else
+              # Linux sed
+              grep -rl "Wno-error=changes-meaning" external | xargs sed -i 's/-Wno-error=changes-meaning//g'
+            fi
+          fi
+          echo "TBB patching completed"
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
         env:
