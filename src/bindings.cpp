@@ -16,11 +16,28 @@
 
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 
 namespace py = pybind11;
 
 // Define the global variable used by instant-meshes
 int nprocs = -1;  // -1 means automatic thread count
+
+// Helper function to get temporary directory
+static std::string get_temp_dir() {
+    // Try various environment variables for temp directory
+    const char* tmpdir = std::getenv("TMPDIR");
+    if (!tmpdir) tmpdir = std::getenv("TEMP");
+    if (!tmpdir) tmpdir = std::getenv("TMP");
+    if (!tmpdir) {
+#ifdef _WIN32
+        tmpdir = "C:\\Temp";
+#else
+        tmpdir = "/tmp";
+#endif
+    }
+    return std::string(tmpdir);
+}
 
 // Helper function to write mesh data to a temporary file
 static void write_temp_mesh(const std::string& filename,
@@ -113,9 +130,12 @@ remesh(py::array_t<float> vertices,
         throw std::runtime_error("Faces must be a Nx3 or Nx4 array");
     }
     
+    // Get temp directory
+    std::string temp_dir = get_temp_dir();
+    
     // Create temporary files
-    std::string input_file = "/tmp/pyim_input_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
-    std::string output_file = "/tmp/pyim_output_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
+    std::string input_file = temp_dir + "/pyim_input_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
+    std::string output_file = temp_dir + "/pyim_output_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
     
     try {
         // Write input mesh
