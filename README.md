@@ -26,7 +26,7 @@ pip install .
 
 ### Requirements
 
-- Python 3.7+
+- Python 3.8+
 - NumPy
 - CMake 3.15+
 - C++11 compiler
@@ -166,7 +166,7 @@ The project includes a comprehensive test suite using pytest. To run the tests l
 
 The project uses GitHub Actions for continuous integration. Tests are automatically run on:
 - **Operating Systems**: Linux (Ubuntu), macOS, and Windows
-- **Python Versions**: 3.7 (Ubuntu 20.04 only), 3.8, 3.9, 3.10, 3.11, and 3.12
+- **Python Versions**: 3.8, 3.9, 3.10, 3.11, and 3.12
 
 The CI pipeline:
 1. Builds the C++ extension for each platform and Python version

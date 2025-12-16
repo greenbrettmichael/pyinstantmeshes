@@ -7,7 +7,7 @@ name = "pyinstantmeshes"
 version = "0.1.0"
 description = "Python bindings for Instant Meshes - fast automatic retopology"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "BSD-3-Clause"}
 authors = [
     {name = "pyinstantmeshes contributors"}
