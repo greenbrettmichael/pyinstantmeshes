@@ -17,11 +17,31 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <random>
+#include <thread>
 
 namespace py = pybind11;
 
 // Define the global variable used by instant-meshes
 int nprocs = -1;  // -1 means automatic thread count
+
+// RAII helper for temporary file cleanup
+class TempFile {
+public:
+    std::string path;
+    
+    explicit TempFile(const std::string& p) : path(p) {}
+    
+    ~TempFile() {
+        if (!path.empty()) {
+            std::remove(path.c_str());
+        }
+    }
+    
+    // Disable copy
+    TempFile(const TempFile&) = delete;
+    TempFile& operator=(const TempFile&) = delete;
+};
 
 // Helper function to get temporary directory
 static std::string get_temp_dir() {
@@ -37,6 +57,26 @@ static std::string get_temp_dir() {
 #endif
     }
     return std::string(tmpdir);
+}
+
+// Helper function to generate unique temporary filename
+static std::string generate_temp_filename(const std::string& prefix, const std::string& extension) {
+    // Use random device for better uniqueness than timestamp alone
+    static std::random_device rd;
+    static std::mt19937_64 gen(rd());
+    
+    std::string temp_dir = get_temp_dir();
+    
+    // Combine thread ID, timestamp, and random number for uniqueness
+    auto thread_id = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
+    auto random_num = gen();
+    
+    std::ostringstream oss;
+    oss << temp_dir << "/" << prefix << "_" 
+        << thread_id << "_" << timestamp << "_" << random_num << extension;
+    
+    return oss.str();
 }
 
 // Helper function to write mesh data to a temporary file
@@ -130,38 +170,22 @@ remesh(py::array_t<float> vertices,
         throw std::runtime_error("Faces must be a Nx3 or Nx4 array");
     }
     
-    // Get temp directory
-    std::string temp_dir = get_temp_dir();
+    // Create temporary files with RAII cleanup
+    TempFile input_file(generate_temp_filename("pyim_input", ".obj"));
+    TempFile output_file(generate_temp_filename("pyim_output", ".obj"));
     
-    // Create temporary files
-    std::string input_file = temp_dir + "/pyim_input_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
-    std::string output_file = temp_dir + "/pyim_output_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".obj";
+    // Write input mesh
+    write_temp_mesh(input_file.path, vertices, faces);
     
-    try {
-        // Write input mesh
-        write_temp_mesh(input_file, vertices, faces);
-        
-        // Call batch_process
-        batch_process(input_file, output_file,
-                     rosy, posy, target_edge_length, 
-                     target_face_count, target_vertex_count,
-                     crease_angle, extrinsic, align_to_boundaries,
-                     smooth_iterations, knn_points, pure_quad, deterministic);
-        
-        // Read output mesh
-        auto result = read_temp_mesh(output_file);
-        
-        // Clean up temporary files
-        std::remove(input_file.c_str());
-        std::remove(output_file.c_str());
-        
-        return result;
-    } catch (...) {
-        // Clean up temporary files on error
-        std::remove(input_file.c_str());
-        std::remove(output_file.c_str());
-        throw;
-    }
+    // Call batch_process
+    batch_process(input_file.path, output_file.path,
+                 rosy, posy, target_edge_length, 
+                 target_face_count, target_vertex_count,
+                 crease_angle, extrinsic, align_to_boundaries,
+                 smooth_iterations, knn_points, pure_quad, deterministic);
+    
+    // Read output mesh (files will be auto-cleaned by TempFile destructors)
+    return read_temp_mesh(output_file.path);
 }
 
 // Python-friendly wrapper for remeshing from file
