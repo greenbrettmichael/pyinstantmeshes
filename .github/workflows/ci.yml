@@ -55,8 +55,19 @@ jobs:
         pip install -v .[test]
     
     - name: Run tests with coverage
+      env:
+        PYTHONDONTWRITEBYTECODE: 1
+      shell: bash
       run: |
-        pytest -v --cov=pyinstantmeshes --cov-report=xml --cov-report=term-missing
+        # Change to temp directory to ensure tests use installed package
+        WORKSPACE="${{ github.workspace }}"
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cd "$TEMP"
+        else
+          cd /tmp
+        fi
+        pytest "$WORKSPACE/tests" -v --cov=pyinstantmeshes --cov-report=xml --cov-report=term-missing
+        cp coverage.xml "$WORKSPACE/"
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
