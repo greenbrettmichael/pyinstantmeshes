@@ -16,6 +16,20 @@ Instant Meshes is based on the research paper:
 
 ## Installation
 
+### From PyPI
+
+The easiest way to install pyinstantmeshes is via pip:
+
+```bash
+pip install pyinstantmeshes
+```
+
+Pre-built binary wheels are available for:
+- **Linux** (manylinux)
+- **macOS**
+- **Windows**
+- **Python versions**: 3.8, 3.9, 3.10, 3.11, 3.12
+
 ### From source
 
 ```bash
