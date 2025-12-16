@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15...3.27)
-project(pyinstantmeshes LANGUAGES CXX)
+project(pyinstantmeshes LANGUAGES CXX C)
 
 # Set C++11 standard
 set(CMAKE_CXX_STANDARD 11)
@@ -38,14 +38,11 @@ if(MSVC)
   endforeach()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+  # Fix for newer GCC with old TBB
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=changes-meaning")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
-
-# Disable NanoGUI build options
-set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
 
 # Build TBB
 set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
@@ -54,15 +51,21 @@ set(TBB_BUILD_TBBMALLOC OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 
-# Add instant-meshes dependencies
-add_subdirectory(external/instant-meshes/ext/nanogui EXCLUDE_FROM_ALL)
+# Fix for older TBB with newer compilers  
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
+  add_compile_options(-Wno-error=changes-meaning -fpermissive)
+endif()
+
+# Build TBB with position-independent code for use in shared library
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Add instant-meshes TBB dependency only (we don't need NanoGUI for Python bindings)
 add_subdirectory(external/instant-meshes/ext/tbb EXCLUDE_FROM_ALL)
 
 # Include directories
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/ext/nanogui/include
-  ${NANOGUI_EXTRA_INCS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/ext/nanogui/ext/eigen
   ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/ext/tbb/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/ext/dset
   ${CMAKE_CURRENT_SOURCE_DIR}/external/instant-meshes/ext/pss
@@ -100,8 +103,8 @@ pybind11_add_module(_pyinstantmeshes
 # Link libraries
 target_link_libraries(_pyinstantmeshes PRIVATE tbb_static)
 
-# Add compile definitions
-target_compile_definitions(_pyinstantmeshes PRIVATE ${NANOGUI_EXTRA_DEFS})
+# Disable visibility settings that might conflict
+set_target_properties(_pyinstantmeshes PROPERTIES CXX_VISIBILITY_PRESET default)
 
 # Install the module
 install(TARGETS _pyinstantmeshes DESTINATION pyinstantmeshes)

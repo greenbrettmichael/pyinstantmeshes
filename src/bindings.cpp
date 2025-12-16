@@ -19,6 +19,9 @@
 
 namespace py = pybind11;
 
+// Define the global variable used by instant-meshes
+int nprocs = -1;  // -1 means automatic thread count
+
 // Helper function to write mesh data to a temporary file
 static void write_temp_mesh(const std::string& filename,
                            py::array_t<float> vertices,
