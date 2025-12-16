@@ -29,6 +29,7 @@ test = [
 [tool.scikit-build]
 cmake.version = ">=3.15"
 cmake.build-type = "Release"
+cmake.args = ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
