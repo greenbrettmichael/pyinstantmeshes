@@ -1,0 +1,3 @@
+[submodule "external/instant-meshes"]
+	path = external/instant-meshes
+	url = https://github.com/wjakob/instant-meshes.git
