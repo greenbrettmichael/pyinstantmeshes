@@ -1,6 +1,6 @@
 # pyinstantmeshes
 
-[![CI](https://github.com/greenbrettmichael/pyinstantmeshes/workflows/CI/badge.svg)](https://github.com/greenbrettmichael/pyinstantmeshes/actions)
+[![CI](https://github.com/greenbrettmichael/pyinstantmeshes/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/greenbrettmichael/pyinstantmeshes/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes/branch/main/graph/badge.svg)](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes)
 
 Python bindings for [Instant Meshes](https://github.com/wjakob/instant-meshes) - a fast automatic retopology tool.
