@@ -1,6 +1,6 @@
 # pyinstantmeshes
 
-[![CI](https://github.com/greenbrettmichael/pyinstantmeshes/workflows/CI/badge.svg)](https://github.com/greenbrettmichael/pyinstantmeshes/actions)
+[![CI](https://github.com/greenbrettmichael/pyinstantmeshes/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/greenbrettmichael/pyinstantmeshes/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes/branch/main/graph/badge.svg)](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes)
 
 Python bindings for [Instant Meshes](https://github.com/wjakob/instant-meshes) - a fast automatic retopology tool.
@@ -15,6 +15,20 @@ Instant Meshes is based on the research paper:
 > In *ACM Transactions on Graphics (Proceedings of SIGGRAPH Asia 2015)*
 
 ## Installation
+
+### From PyPI
+
+The easiest way to install pyinstantmeshes is via pip:
+
+```bash
+pip install pyinstantmeshes
+```
+
+Pre-built binary wheels are available for:
+- **Linux** (manylinux)
+- **macOS**
+- **Windows**
+- **Python versions**: 3.11, 3.12, 3.13, 3.14
 
 ### From source
 
