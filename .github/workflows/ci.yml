@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Set up MSVC (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+    
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build
+    
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install cmake ninja
+    
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+        choco install ninja
+      shell: powershell
+    
+    - name: Upgrade pip and install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build setuptools wheel
+    
+    - name: Build and install package
+      timeout-minutes: 30
+      run: |
+        pip install -v .[test]
+    
+    - name: Run tests with coverage
+      env:
+        PYTHONDONTWRITEBYTECODE: 1
+      shell: bash
+      run: |
+        # Change to temp directory to ensure tests use installed package
+        WORKSPACE="${{ github.workspace }}"
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          cd "$TEMP"
+        else
+          cd /tmp
+        fi
+        pytest "$WORKSPACE/tests" -v --cov=pyinstantmeshes --cov-report=xml --cov-report=term-missing
+        cp coverage.xml "$WORKSPACE/"
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
+        fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

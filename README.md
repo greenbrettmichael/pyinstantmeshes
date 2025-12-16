@@ -1,5 +1,8 @@
 # pyinstantmeshes
 
+[![CI](https://github.com/greenbrettmichael/pyinstantmeshes/workflows/CI/badge.svg)](https://github.com/greenbrettmichael/pyinstantmeshes/actions)
+[![codecov](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes/branch/main/graph/badge.svg)](https://codecov.io/gh/greenbrettmichael/pyinstantmeshes)
+
 Python bindings for [Instant Meshes](https://github.com/wjakob/instant-meshes) - a fast automatic retopology tool.
 
 ## Overview
@@ -23,7 +26,7 @@ pip install .
 
 ### Requirements
 
-- Python 3.7+
+- Python 3.8+
 - NumPy
 - CMake 3.15+
 - C++11 compiler
@@ -135,6 +138,43 @@ Remesh a mesh from an input file and save to an output file.
 **Returns:**
 - `vertices` (numpy.ndarray): Output vertex positions as Nx3 float array
 - `faces` (numpy.ndarray): Output face indices as Nx3 or Nx4 int array
+
+## Development
+
+### Running Tests
+
+The project includes a comprehensive test suite using pytest. To run the tests locally:
+
+1. Install the package with test dependencies:
+   ```bash
+   pip install -e .[test]
+   ```
+
+2. Run the tests:
+   ```bash
+   pytest
+   ```
+
+3. Run tests with coverage report:
+   ```bash
+   pytest --cov=pyinstantmeshes --cov-report=term-missing --cov-report=html
+   ```
+   
+   The coverage report will be available in `htmlcov/index.html`.
+
+### Continuous Integration
+
+The project uses GitHub Actions for continuous integration. Tests are automatically run on:
+- **Operating Systems**: Linux (Ubuntu), macOS, and Windows
+- **Python Versions**: 3.8, 3.9, 3.10, 3.11, and 3.12
+
+The CI pipeline:
+1. Builds the C++ extension for each platform and Python version
+2. Runs the full test suite
+3. Generates coverage reports
+4. Uploads coverage to Codecov
+
+All pull requests must pass the CI checks before merging.
 
 ## License
 
