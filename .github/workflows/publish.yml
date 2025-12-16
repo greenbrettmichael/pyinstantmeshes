@@ -28,16 +28,19 @@ jobs:
         run: |
           # Recursively find files containing the problematic flag and remove it
           # Use grep with || true to avoid failure if pattern not found
-          if grep -rl "Wno-error=changes-meaning" external 2>/dev/null; then
+          FILES=$(grep -rl "Wno-error=changes-meaning" external 2>/dev/null || true)
+          if [ -n "$FILES" ]; then
             if [[ "$OSTYPE" == "darwin"* ]]; then
               # macOS sed requires empty string after -i
-              grep -rl "Wno-error=changes-meaning" external | xargs sed -i '' 's/-Wno-error=changes-meaning//g'
+              echo "$FILES" | xargs sed -i '' 's/-Wno-error=changes-meaning//g'
             else
-              # Linux sed
-              grep -rl "Wno-error=changes-meaning" external | xargs sed -i 's/-Wno-error=changes-meaning//g'
+              # Linux and Windows (Git Bash) sed
+              echo "$FILES" | xargs sed -i 's/-Wno-error=changes-meaning//g'
             fi
+            echo "TBB patching completed: removed flag from $(echo "$FILES" | wc -l) file(s)"
+          else
+            echo "TBB patching completed: no files needed patching"
           fi
-          echo "TBB patching completed"
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
