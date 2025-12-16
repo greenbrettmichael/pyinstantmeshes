@@ -1,0 +1,83 @@
+name: Publish to PyPI
+
+on:
+  push:
+    # Tag push for PyPI
+    tags:
+      - "v*"
+  # Manual trigger for TestPyPI
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.0
+        env:
+          CIBW_SKIP: "cp36-* pp*"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  make_sdist:
+    name: Make SDist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build SDist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-dist
+          path: dist/*.tar.gz
+
+  publish:
+    name: Publish
+    needs: [build_wheels, make_sdist]
+    runs-on: ubuntu-latest
+    # PyPI on tag; TestPyPI on manual dispatch
+    if: |
+      startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/v') && 'pypi' || 'testpypi' }}
+      url: ${{ startsWith(github.ref, 'refs/tags/v') && 'https://pypi.org/p/pyinstantmeshes' || 'https://test.pypi.org/p/pyinstantmeshes' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          # Downloads artifacts from build_wheels & make_sdist
+          pattern: 'cibw-wheels-*'
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-dist
+          path: dist
+
+      - name: Publish distribution to PyPI/TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && 'https://test.pypi.org/legacy/' || '' }}
