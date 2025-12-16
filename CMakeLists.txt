@@ -39,7 +39,7 @@ if(MSVC)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
   # Fix for newer GCC with old TBB
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=changes-meaning")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
@@ -53,7 +53,7 @@ set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 
 # Fix for older TBB with newer compilers  
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
-  add_compile_options(-Wno-error=changes-meaning -fpermissive)
+  add_compile_options( -fpermissive)
 endif()
 
 # Build TBB with position-independent code for use in shared library

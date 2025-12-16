@@ -23,17 +23,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Patch TBB for GCC 10
-        shell: bash
-        run: |
-          echo "Hunting down the problematic flag..."
-          # 1. Find any file containing 'changes-meaning'
-          # 2. Use xargs to pass those filenames to sed
-          # 3. sed deletes '-Wno-error=changes-meaning' from those files
-          grep -rl "changes-meaning" . | xargs sed -i 's/-Wno-error=changes-meaning//g'
-          
-          echo "Patch applied."
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
         env:
