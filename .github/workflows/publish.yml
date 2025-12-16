@@ -5,9 +5,14 @@ on:
     # Tag push for PyPI
     tags:
       - "v*"
-    # Development branch for TestPyPI
-    branches:
-      - development
+  # Manual trigger for TestPyPI
+  workflow_dispatch:
+    inputs:
+      publish_to_testpypi:
+        description: 'Publish to TestPyPI'
+        required: true
+        default: 'true'
+        type: boolean
 
 jobs:
   build_wheels:
@@ -56,9 +61,9 @@ jobs:
     name: Publish
     needs: [build_wheels, make_sdist]
     runs-on: ubuntu-latest
-    # PyPI on tag; TestPyPI on development branch
+    # PyPI on tag; TestPyPI on manual dispatch
     if: |
-      startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/development'
+      startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     permissions:
       id-token: write
       contents: read
@@ -81,4 +86,4 @@ jobs:
       - name: Publish distribution to PyPI/TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: ${{ github.ref == 'refs/heads/development' && 'https://test.pypi.org/legacy/' || '' }}
+          repository-url: ${{ github.event_name == 'workflow_dispatch' && 'https://test.pypi.org/legacy/' || '' }}
