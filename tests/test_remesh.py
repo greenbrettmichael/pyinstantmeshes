@@ -206,8 +206,6 @@ class TestRemeshParameters:
         assert abs(len(output1_v) - len(output2_v)) < 20
 
 
-
-
 class TestRemeshValidation:
     """Test input validation for remesh function."""
     
