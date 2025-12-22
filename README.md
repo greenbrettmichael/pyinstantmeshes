@@ -212,7 +212,20 @@ If you use this software in academic work, please cite the original Instant Mesh
 }
 ```
 
+## Performance Benchmarks
+
+Comprehensive benchmarks comparing pybind11 and nanobind implementations are available in [`docs/benchmarks/bindings_pybind11_vs_nanobind.md`](docs/benchmarks/bindings_pybind11_vs_nanobind.md).
+
+**Key findings:**
+- **Import Time**: nanobind is 13.7% faster
+- **Binary Size**: nanobind is 27% smaller (399KB vs 551KB)
+- **Runtime Performance**: pybind11 is 79% faster for end-to-end processing
+- **Recommendation**: pybind11 (current implementation) for best runtime performance
+
+Both implementations are maintained in the codebase and can be selected via CMake options for future evaluation.
+
 ## Acknowledgments
 
 - Original Instant Meshes by Wenzel Jakob: https://github.com/wjakob/instant-meshes
 - pybind11 for C++/Python bindings: https://github.com/pybind/pybind11
+- nanobind for alternative Python bindings: https://github.com/wjakob/nanobind

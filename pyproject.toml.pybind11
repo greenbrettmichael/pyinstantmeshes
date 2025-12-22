@@ -1,0 +1,70 @@
+[build-system]
+requires = ["scikit-build-core>=0.3.3", "pybind11>=2.10.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pyinstantmeshes"
+version = "1.0.0"
+description = "Python bindings for Instant Meshes - fast automatic retopology"
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.11"
+authors = [
+    { name = "Brett-Michael Green", email = "brett@bmgvisualtech.com" },
+]
+keywords = [
+    "mesh",
+    "simplification",
+    "optimization",
+    "remeshing"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion"
+]
+dependencies = [
+    "numpy>=1.19.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/greenbrettmichael/pyinstantmeshes"
+Repository = "https://github.com/greenbrettmichael/pyinstantmeshes"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.scikit-build]
+cmake.version = ">=3.15"
+cmake.build-type = "Release"
+cmake.args = ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=pyinstantmeshes --cov-report=term-missing --cov-report=xml --cov-report=html --import-mode=importlib"
+
+[tool.coverage.run]
+source = ["pyinstantmeshes"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+]

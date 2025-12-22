@@ -1,13 +1,24 @@
 cmake_minimum_required(VERSION 3.15...3.27)
 project(pyinstantmeshes LANGUAGES CXX C)
 
-# Set C++11 standard
-set(CMAKE_CXX_STANDARD 11)
+# Option to choose binding library
+option(USE_NANOBIND "Use nanobind instead of pybind11" OFF)
+
+# Set C++17 standard (required for nanobind, compatible with pybind11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find Python and pybind11
+# Find Python
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
-find_package(pybind11 CONFIG REQUIRED)
+
+# Find the appropriate binding library
+if(USE_NANOBIND)
+  message(STATUS "Using nanobind for Python bindings")
+  find_package(nanobind CONFIG REQUIRED)
+else()
+  message(STATUS "Using pybind11 for Python bindings")
+  find_package(pybind11 CONFIG REQUIRED)
+endif()
 
 # Set build type to Release if not specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -15,7 +26,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-# Sanitize build environment for static build with C++11
+# Sanitize build environment for static build with C++17
 if(MSVC)
   add_definitions(/D "_CRT_SECURE_NO_WARNINGS")
   add_definitions(/D "__TBB_NO_IMPLICIT_LINKAGE")
@@ -37,11 +48,11 @@ if(MSVC)
     string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
   endforeach()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
   # Fix for newer GCC with old TBB
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 # Build TBB
@@ -95,10 +106,17 @@ set(IM_SOURCES
 )
 
 # Python module
-pybind11_add_module(_pyinstantmeshes 
-  src/bindings.cpp
-  ${IM_SOURCES}
-)
+if(USE_NANOBIND)
+  nanobind_add_module(_pyinstantmeshes 
+    src/bindings_nanobind.cpp
+    ${IM_SOURCES}
+  )
+else()
+  pybind11_add_module(_pyinstantmeshes 
+    src/bindings.cpp
+    ${IM_SOURCES}
+  )
+endif()
 
 # Link libraries
 target_link_libraries(_pyinstantmeshes PRIVATE tbb_static)
