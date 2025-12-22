@@ -1,0 +1,34 @@
+{
+  "system_info": {
+    "platform": "Linux-6.11.0-1018-azure-x86_64-with-glibc2.39",
+    "python_version": "3.12.3",
+    "processor": "x86_64",
+    "cpu_count": 4,
+    "numpy_version": "2.4.0"
+  },
+  "benchmarks": {
+    "import_time": {
+      "mean_ms": 0.12004243999172104,
+      "std_ms": 0.11500807576554196,
+      "min_ms": 0.07267500006946648,
+      "max_ms": 0.8134439999594179,
+      "iterations": 50
+    },
+    "call_overhead": {
+      "mean_ms": 3.4711230340004704,
+      "std_ms": 0.3224680004373823,
+      "min_ms": 3.3655100000942184,
+      "max_ms": 8.401523999964411,
+      "iterations": 1000
+    },
+    "end_to_end": {
+      "mean_ms": 32.653487300001416,
+      "std_ms": 0.1399433930013349,
+      "min_ms": 32.48122999991665,
+      "max_ms": 32.98186300003181,
+      "iterations": 10,
+      "input_vertices": 64,
+      "input_faces": 108
+    }
+  }
+}
