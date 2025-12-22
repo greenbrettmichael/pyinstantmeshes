@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core>=0.3.3", "pybind11>=2.10.0"]
+requires = ["scikit-build-core>=0.3.3", "nanobind>=2.0.0"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -48,7 +48,7 @@ test = [
 [tool.scikit-build]
 cmake.version = ">=3.15"
 cmake.build-type = "Release"
-cmake.args = ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5"]
+cmake.args = ["-DCMAKE_POLICY_VERSION_MINIMUM=3.5", "-DUSE_NANOBIND=ON"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -82,9 +82,10 @@ static std::string generate_temp_filename(const std::string& prefix, const std::
 }
 
 // Helper function to write mesh data to a temporary file
+template <typename VertArray, typename FaceArray>
 static void write_temp_mesh(const std::string& filename,
-                           nb::ndarray<float, nb::shape<nb::any, 3>, nb::c_contig> vertices,
-                           nb::ndarray<int, nb::shape<nb::any, nb::any>, nb::c_contig> faces) {
+                           const VertArray& vertices,
+                           const FaceArray& faces) {
     size_t num_vertices = vertices.shape(0);
     size_t num_faces = faces.shape(0);
     size_t face_size = faces.shape(1);
@@ -97,16 +98,21 @@ static void write_temp_mesh(const std::string& filename,
     // Write as OBJ format
     out << "# Generated mesh for Instant Meshes processing\n";
     
+    // Get raw pointers to data
+    const float* v_data = (const float*)vertices.data();
+    const int* f_data = (const int*)faces.data();
+    
     // Write vertices
     for (size_t i = 0; i < num_vertices; ++i) {
-        out << "v " << vertices(i, 0) << " " << vertices(i, 1) << " " << vertices(i, 2) << "\n";
+        size_t idx = i * 3;
+        out << "v " << v_data[idx] << " " << v_data[idx + 1] << " " << v_data[idx + 2] << "\n";
     }
     
     // Write faces (OBJ format is 1-indexed)
     for (size_t i = 0; i < num_faces; ++i) {
         out << "f";
         for (size_t j = 0; j < face_size; ++j) {
-            out << " " << (faces(i, j) + 1);
+            out << " " << (f_data[i * face_size + j] + 1);
         }
         out << "\n";
     }
@@ -114,9 +120,9 @@ static void write_temp_mesh(const std::string& filename,
     out.close();
 }
 
-// Helper function to read mesh data from a file
-static std::tuple<nb::ndarray<nb::numpy, float, nb::shape<nb::any, 3>>, 
-                  nb::ndarray<nb::numpy, int, nb::shape<nb::any, nb::any>>>
+// Helper function to read mesh data from a file  
+static std::tuple<nb::ndarray<nb::numpy, float>, 
+                  nb::ndarray<nb::numpy, int>>
 read_temp_mesh(const std::string& filename) {
     MatrixXu F;
     MatrixXf V, N;
@@ -148,15 +154,20 @@ read_temp_mesh(const std::string& filename) {
     }
     
     // Create ndarray objects with ownership transfer
-    auto vertices = nb::ndarray<nb::numpy, float, nb::shape<nb::any, 3>>(
+    size_t vertices_shape[2] = {num_vertices, 3};
+    size_t faces_shape[2] = {num_faces, face_dim};
+    
+    auto vertices = nb::ndarray<nb::numpy, float>(
         vertices_data,
-        {num_vertices, 3},
+        2,
+        vertices_shape,
         nb::capsule(vertices_data, [](void* p) noexcept { delete[] (float*)p; })
     );
     
-    auto faces = nb::ndarray<nb::numpy, int, nb::shape<nb::any, nb::any>>(
+    auto faces = nb::ndarray<nb::numpy, int>(
         faces_data,
-        {num_faces, face_dim},
+        2,
+        faces_shape,
         nb::capsule(faces_data, [](void* p) noexcept { delete[] (int*)p; })
     );
     
@@ -164,10 +175,10 @@ read_temp_mesh(const std::string& filename) {
 }
 
 // Python-friendly wrapper for batch_process
-std::tuple<nb::ndarray<nb::numpy, float, nb::shape<nb::any, 3>>,
-           nb::ndarray<nb::numpy, int, nb::shape<nb::any, nb::any>>>
-remesh(nb::ndarray<float, nb::shape<nb::any, 3>, nb::c_contig> vertices,
-       nb::ndarray<int, nb::shape<nb::any, nb::any>, nb::c_contig> faces,
+std::tuple<nb::ndarray<nb::numpy, float>,
+           nb::ndarray<nb::numpy, int>>
+remesh(nb::ndarray<float> vertices,
+       nb::ndarray<int> faces,
        int target_vertex_count = -1,
        int target_face_count = -1,
        float target_edge_length = -1.0f,
@@ -209,8 +220,8 @@ remesh(nb::ndarray<float, nb::shape<nb::any, 3>, nb::c_contig> vertices,
 }
 
 // Python-friendly wrapper for remeshing from file
-std::tuple<nb::ndarray<nb::numpy, float, nb::shape<nb::any, 3>>,
-           nb::ndarray<nb::numpy, int, nb::shape<nb::any, nb::any>>>
+std::tuple<nb::ndarray<nb::numpy, float>,
+           nb::ndarray<nb::numpy, int>>
 remesh_file(const std::string& input_path,
            const std::string& output_path,
            int target_vertex_count = -1,
