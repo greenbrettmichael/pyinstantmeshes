@@ -26,7 +26,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-# Sanitize build environment for static build with C++11
+# Sanitize build environment for static build with C++17
 if(MSVC)
   add_definitions(/D "_CRT_SECURE_NO_WARNINGS")
   add_definitions(/D "__TBB_NO_IMPLICIT_LINKAGE")

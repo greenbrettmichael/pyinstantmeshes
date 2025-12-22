@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <random>
 #include <thread>
+#include <chrono>
 
 namespace nb = nanobind;
 using namespace nb::literals;
